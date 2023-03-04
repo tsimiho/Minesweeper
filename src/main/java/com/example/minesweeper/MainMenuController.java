@@ -10,16 +10,10 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.stage.Stage;
 
-public class MainMenuCONTROLLER {
+public class MainMenuController {
 
     @FXML
     private Button NewGame;
@@ -57,7 +51,7 @@ public class MainMenuCONTROLLER {
 
     @FXML
     void NewGame(ActionEvent event) throws IOException {
-FXMLLoader loader = new FXMLLoader();
+        FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("NewGameFXML.fxml"));
         AnchorPane root = loader.load();
         Scene scene = new Scene(root);

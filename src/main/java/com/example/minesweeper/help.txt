@@ -1,8 +1,0 @@
-1st char:
-- B: mine
--
-
-
-2nd char:
-- F: not revealed
-- T: revealed

@@ -4,11 +4,11 @@ import java.util.Random;
 //import java.util.Scanner;
 
 public class Mines {
-    private int height /* rows */, width /* columns */, numMines, totalToReveal /* excluding mines */, numberOfFlags;
+    static int winLose = -1;
     public String[][] board;
+    private int height /* rows */, width /* columns */, numMines, totalToReveal /* excluding mines */, numberOfFlags;
     private Random rand = new Random(); // Generate random numbers
     private int h, w; // Assist with random received values
-    static int winLose=-1;
 
     // @SuppressWarnings("resource")
     public Mines(int height, int width, int numMines) {
@@ -88,7 +88,7 @@ public class Mines {
             totalToReveal = 0; // Finish game
             isDone();
             System.out.println("Game over, boy");
-            winLose=0;
+            winLose = 0;
             return true;
         }
         if (board[i][j].charAt(2) != 'E' && board[i][j].charAt(2) != 'M' && board[i][j].charAt(2) != 'B') {
@@ -96,7 +96,7 @@ public class Mines {
             totalToReveal--;
             if (isDone()) {
                 System.out.println("You win!");
-                winLose=1;
+                winLose = 1;
             }
             return true;
         }
@@ -108,7 +108,7 @@ public class Mines {
                     if (!(r == 0 && c == 0) && inBoard(i + r, j + c)) {
                         if (isDone()) {
                             System.out.println("You win!");
-                            winLose=1;
+                            winLose = 1;
                         }
                         open(i + r, j + c);
                     }
@@ -126,19 +126,18 @@ public class Mines {
         if (board[x][y].contains("N") && numberOfFlags < numMines) {
             board[x][y] = "D" + board[x][y].substring(1, 3); // Overwrite it with flag mark (D)
             numberOfFlags++;
-        }
-        else if (board[x][y].contains("D")) {
+        } else if (board[x][y].contains("D")) {
             board[x][y] = "N" + board[x][y].substring(1, 3); // Remove flag mark
             numberOfFlags--;
         }
     }
 
-    public void toggleQM(int x, int y) {
-        checkPlace(x, y);
-        if (board[x][y].contains("T"))
-            return;
-        board[x][y] = "?" + board[x][y].substring(1, 3); // Overwrite it with question mark (?)
-    }
+//    public void toggleQM(int x, int y) {
+//        checkPlace(x, y);
+//        if (board[x][y].contains("T"))
+//            return;
+//        board[x][y] = "?" + board[x][y].substring(1, 3); // Overwrite it with question mark (?)
+//    }
 
     public boolean isDone() {
         if (totalToReveal != 0)
