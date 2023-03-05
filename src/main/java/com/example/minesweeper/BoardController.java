@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.lang.*;
 
+import com.almasb.fxgl.app.GameController;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -33,170 +34,79 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import java.util.Optional;
 
 public class BoardController {
-    public int numberOfFlags;
 
+    static Mines game;
+    public int numberOfFlags, level, mines, hypermine, time, rows = 9, columns = 9;
     public FileController fc = new FileController();
-
-    public int scenario_id;
+    //    public NewGameController gc;
+    public String scenario_id;
     @FXML
     public GridPane TheBoard;
     @FXML
     public Label winLose;
+    public FXMLLoader loader;
+    @FXML
+    public ImageView MineView;
+    @FXML
+    public Label MineCount;
+
+    @FXML
+    public ImageView FlagView;
+    @FXML
+    public Label FlagCount;
+    @FXML
+    MenuBar MyMenuBar;
+    Stage gameStage = new Stage();
     Button b;
-    @FXML
-    private Button ResetBoard;
+    BoardController bCont;
 
-    @FXML
-    void ResetBoard(ActionEvent event) throws IOException {
-        NewGameController.game = new Mines(NewGameController.rows, NewGameController.columns, NewGameController.mines);
+    public BoardController() {
+    }
 
-        FXMLLoader loader = new FXMLLoader(); // Create loading object
-        loader.setLocation(getClass().getResource("BoardFXML.fxml")); // fxml location
+    public BoardController(int[] input) throws IOException {
+        level = input[0];
+        mines = input[1];
+        hypermine = input[2];
+        time = input[3];
+        numberOfFlags = mines;
+
+        loader = new FXMLLoader(getClass().getResource("BoardFXML.fxml"));
 
         AnchorPane root = loader.load(); // Load layout
         Scene scene = new Scene(root); // Create scene with chosen layout
-        Stage gameStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
 
-        gameStage.setTitle("BOOM Beach"); // Set stage's title
-//      gameStage.setMinWidth(1000); // Won't be allowed to make width/height smaller
-//      gameStage.setMinHeight(500);
-//      gameStage.setMaxWidth(2000);
-//      gameStage.setMaxHeight(1000);
-        gameStage.setScene(scene); // Set scene to stage
+        SetDimensions();
 
-        BoardController bCont = loader.getController(); // Prepare board in BoardCONTROLLER
+        gameStage.setTitle("MediaLab Minesweeper"); // Set stage's title
+        bCont = loader.getController();
+        bCont.SetMineView(mines);
+        bCont.SetFlagCount(numberOfFlags);
+        gameStage.setScene(scene);
 
-        bCont.winLose.setVisible(false);
+        StartGame();
 
-        for (int i = 0; i < NewGameController.columns; i++) {
-            for (int j = 0; j < NewGameController.rows; j++) {
-                b = new Button(" ");
-                b.setMinSize(30, 30);
-                b.setMaxSize(30, 30);
-                b.setStyle("-fx-font-size:11");
-                bCont.TheBoard.add(b, i, j);
-                GridPane.setMargin(b, new Insets(5, 5, 5, 5));
-                GridPane.setHalignment(b, HPos.CENTER);
-                GridPane.setValignment(b, VPos.CENTER);
-            }
+    }
+
+    void SetMineView(int m) {
+        MineView.setImage(new Image(Objects.requireNonNull(getClass().getResource("images/mine.png")).toExternalForm()));
+//        MineCount = new Label();
+        MineCount.setText(Integer.toString(m));
+    }
+
+    void SetFlagCount(int f) {
+        FlagView.setImage(new Image(Objects.requireNonNull(getClass().getResource("images/flag.png")).toExternalForm()));
+//        MineCount = new Label();
+        FlagCount.setText(Integer.toString(f));
+    }
+
+    void SetDimensions() {
+        if (level == 1) {
+            gameStage.setHeight(600);
+            gameStage.setWidth(600);
+        } else if (level == 2) {
+            gameStage.setHeight(800);
+            gameStage.setWidth(800);
         }
-        for (int i = 0; i < bCont.TheBoard.getChildren().size(); i++) {
-            ((ButtonBase) bCont.TheBoard.getChildren().get(i)).setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    String flag = Objects.requireNonNull(getClass().getResource("images/flag.png")).toExternalForm();
-                    String blank = Objects.requireNonNull(getClass().getResource("images/blank.png")).toExternalForm();
-                    String mine = Objects.requireNonNull(getClass().getResource("images/mine.png")).toExternalForm();
-                    String exposed = Objects.requireNonNull(getClass().getResource("images/exposed.png")).toExternalForm();
-                    String hitmine = Objects.requireNonNull(getClass().getResource("images/hitmine.png")).toExternalForm();
-                    String number1 = Objects.requireNonNull(getClass().getResource("images/number1.png")).toExternalForm();
-                    String number2 = Objects.requireNonNull(getClass().getResource("images/number2.png")).toExternalForm();
-                    String number3 = Objects.requireNonNull(getClass().getResource("images/number3.png")).toExternalForm();
-                    String number4 = Objects.requireNonNull(getClass().getResource("images/number4.png")).toExternalForm();
-                    String number5 = Objects.requireNonNull(getClass().getResource("images/number5.png")).toExternalForm();
-                    String number6 = Objects.requireNonNull(getClass().getResource("images/number6.png")).toExternalForm();
-                    String number7 = Objects.requireNonNull(getClass().getResource("images/number7.png")).toExternalForm();
-                    String number8 = Objects.requireNonNull(getClass().getResource("images/number8.png")).toExternalForm();
-
-                    int x, y;
-                    y = (int) ((Button) event.getSource()).getProperties().get("gridpane-column");
-                    x = (int) ((Button) event.getSource()).getProperties().get("gridpane-row");
-                    if (event.getButton().equals(MouseButton.PRIMARY))
-                        NewGameController.game.open(x, y);
-                    else if (event.getButton().equals(MouseButton.SECONDARY))
-                        NewGameController.game.toggleFlag(x, y);
-//                    else if (event.getButton().equals(MouseButton.MIDDLE))
-//                        NewGameController.game.toggleQM(x, y);
-                    for (Node child : bCont.TheBoard.getChildren()) {
-                        int j = (int) ((Button) child).getProperties().get("gridpane-column");
-                        int i = (int) ((Button) child).getProperties().get("gridpane-row");
-                        if (NewGameController.game.board[i][j].charAt(1) == 'F' && NewGameController.game.board[i][j].charAt(0) == 'D')
-                            ((Button) child).setStyle("-fx-background-image: url('" + flag + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                        if (NewGameController.game.board[i][j].charAt(1) == 'F' && NewGameController.game.board[i][j].charAt(0) == 'N')
-                            ((Button) child).setStyle("-fx-font-size:11");
-
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == 'E') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + exposed + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setDisable(true);
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == 'M') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + mine + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == 'B') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + hitmine + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '1') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number1 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '2') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number2 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '3') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number3 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '4') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number4 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '5') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number5 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '6') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number6 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '7') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number7 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (NewGameController.game.board[i][j].charAt(1) == 'T' && NewGameController.game.board[i][j].charAt(2) == '8') {
-                            ((Button) child).setStyle("-fx-background-image: url('" + number8 + "'); " +
-                                    "-fx-background-position: center center; " +
-                                    "-fx-background-repeat: stretch;");
-                            ((Button) child).setText(" ");
-                        }
-                        if (Mines.winLose == 1) {
-                            bCont.winLose.setVisible(true);
-                            bCont.winLose.setText("YOU WIN!");
-                        }
-                        if (Mines.winLose == 0) {
-                            bCont.winLose.setVisible(true);
-                            bCont.winLose.setText("YOU LOSE! Try again...");
-                        }
-                        Mines.winLose = -1;
-                    }
-                }
-            });
-        }
-        gameStage.show(); // Show stage }
     }
 
     @FXML
@@ -231,27 +141,47 @@ public class BoardController {
 
         dialog.setResultConverter((ButtonType button) -> {
             if (button == ButtonType.OK) {
-                String[] list = {scenario_id.getText(), level.getText(), mines.getText(), hypermine.getText(), time.getText()};
+                String[] list = {scenario_id.getText(), level.getText(), mines.getText(), time.getText(), hypermine.getText()};
                 return list;
             }
             return null;
         });
         Optional<String[]> optionalResult = dialog.showAndWait();
         optionalResult.ifPresent((String[] list) -> {
-//            System.out.println(
-//                    list[0] + " " + list[1] + " " + list[2] + " " + list[3] + " " + list[4]);
-            int[] numbers = Arrays.stream(list).mapToInt(Integer::parseInt).toArray();
-            this.scenario_id = Integer.parseInt(list[0]);
+            this.scenario_id = list[0];
             fc.createScenarioID(list[0], list[1], list[2], list[3], list[4]);
         });
     }
 
     @FXML
-    void ApplicationLoad() {
+    void ApplicationLoad() throws InvalidDescriptionException, InvalidValueException {
+        int[] data = fc.getGameDescription(scenario_id);
+        level = data[0];
+        mines = data[1];
+        time = data[2];
+        hypermine = data[3];
     }
 
     @FXML
-    void ApplicationStart() {
+    void ApplicationStart(ActionEvent event) throws IOException, InvalidDescriptionException, InvalidValueException {
+        loader = new FXMLLoader(getClass().getResource("BoardFXML.fxml"));
+//
+        AnchorPane root = loader.load(); // Load layout
+        Scene scene = new Scene(root); // Create scene with chosen layout
+
+        gameStage = (Stage) MyMenuBar.getScene().getWindow();
+        SetDimensions();
+        bCont = loader.getController();
+
+        bCont.SetMineView(mines);
+
+        gameStage.setScene(scene);
+
+        bCont = loader.getController();
+
+        bCont.scenario_id = scenario_id;
+        bCont.ApplicationLoad();
+        StartGame();
     }
 
     @FXML
@@ -261,5 +191,133 @@ public class BoardController {
     @FXML
     void DetailsSolution() {
     }
+
+    String GetImage(String ImageUrl) {
+        return Objects.requireNonNull(getClass().getResource(ImageUrl)).toExternalForm();
+    }
+
+    @FXML
+    void StartGame() throws IOException {
+        if (level == 1) {
+            rows = 9;
+            columns = 9;
+        } else if (level == 2) {
+            rows = 16;
+            columns = 16;
+        }
+
+        game = new Mines(rows, columns, mines);
+
+//        FXMLLoader loader = new FXMLLoader(); // Create loading object
+//        loader.setLocation(getClass().getResource("BoardFXML.fxml")); // fxml location
+//
+//        AnchorPane root = loader.load(); // Load layout
+//        Scene scene = new Scene(root); // Create scene with chosen layout
+////        Stage gameStage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+////        Stage gameStage = new Stage();
+//
+//        gameStage.setTitle("MediaLab Minesweeper"); // Set stage's title
+//
+//        gameStage.setScene(scene); // Set scene to stage
+//
+//        BoardController bCont = loader.getController(); // Prepare board in BoardCONTROLLER
+
+        bCont.winLose.setVisible(false);
+
+        for (int i = 0; i < columns; i++) {
+            for (int j = 0; j < rows; j++) {
+                b = new Button(" ");
+                b.setMinSize(30, 30);
+                b.setMaxSize(30, 30);
+                b.setStyle("-fx-font-size:11");
+                bCont.TheBoard.add(b, i, j);
+                GridPane.setMargin(b, new Insets(5, 5, 5, 5));
+                GridPane.setHalignment(b, HPos.CENTER);
+                GridPane.setValignment(b, VPos.CENTER);
+            }
+        }
+        for (int i = 0; i < bCont.TheBoard.getChildren().size(); i++) {
+            ((ButtonBase) bCont.TheBoard.getChildren().get(i)).setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    int x, y;
+                    y = (int) ((Button) event.getSource()).getProperties().get("gridpane-column");
+                    x = (int) ((Button) event.getSource()).getProperties().get("gridpane-row");
+                    if (event.getButton().equals(MouseButton.PRIMARY))
+                        game.open(x, y);
+                    else if (event.getButton().equals(MouseButton.SECONDARY))
+                        game.toggleFlag(x, y);
+                    for (Node child : bCont.TheBoard.getChildren()) {
+                        int j = (int) ((Button) child).getProperties().get("gridpane-column");
+                        int i = (int) ((Button) child).getProperties().get("gridpane-row");
+                        if (game.board[i][j].charAt(1) == 'F' && game.board[i][j].charAt(0) == 'D')
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/flag.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        if (game.board[i][j].charAt(1) == 'F' && game.board[i][j].charAt(0) == 'N')
+                            ((Button) child).setStyle("-fx-font-size:11");
+
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == 'E') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/exposed.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                            ((Button) child).setDisable(true);
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == 'M') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/mine.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == 'B') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/hitmine.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '1') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number1.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '2') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number2.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '3') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number3.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '4') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number4.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '5') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number5.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '6') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number6.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '7') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number7.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.board[i][j].charAt(1) == 'T' && game.board[i][j].charAt(2) == '8') {
+                            ((Button) child).setStyle("-fx-background-image: url('" + GetImage("images/number8.png") + "'); " +
+                                    "-fx-background-position: center center; " + "-fx-background-repeat: stretch;");
+                        }
+                        if (game.winLose == 1) {
+                            bCont.winLose.setVisible(true);
+                            bCont.winLose.setText("YOU WIN!");
+                        }
+                        if (game.winLose == 0) {
+                            bCont.winLose.setVisible(true);
+                            bCont.winLose.setText("YOU LOSE! Try again...");
+                        }
+                        Mines.winLose = -1;
+                        numberOfFlags = mines - game.getNumberOfFlags();
+                        bCont.SetFlagCount(numberOfFlags);
+                    }
+                }
+            });
+        }
+        gameStage.show(); // Show stage
+    }
+
 
 }

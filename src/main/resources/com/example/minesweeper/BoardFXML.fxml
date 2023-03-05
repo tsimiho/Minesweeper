@@ -10,9 +10,10 @@
 <?import javafx.scene.paint.Stop?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.control.*?>
-
-
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+
+
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
             minWidth="-Infinity" xmlns="http://javafx.com/javafx/8.0.171"
             fx:controller="com.example.minesweeper.BoardController">
@@ -20,7 +21,7 @@
         <BorderPane AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                     AnchorPane.topAnchor="0.0">
             <top>
-                <MenuBar>
+                <MenuBar fx:id="MyMenuBar">
                     <Menu text="Application">
                         <MenuItem text="Create" onAction="#ApplicationCreate"/>
                         <MenuItem text="Load" onAction="#ApplicationLoad"/>
@@ -33,21 +34,33 @@
                 </MenuBar>
             </top>
         </BorderPane>
-        <GridPane fx:id="TheBoard" alignment="BASELINE_CENTER" AnchorPane.bottomAnchor="130.0"
-                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="40.0">
-        </GridPane>
-        <HBox alignment="BOTTOM_LEFT" fillHeight="false" layoutX="14.0" layoutY="560.0" AnchorPane.bottomAnchor="20.0"
-              AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="700.0" AnchorPane.topAnchor="560.0">
+        <HBox fillHeight="false" AnchorPane.leftAnchor="10" AnchorPane.rightAnchor="10" AnchorPane.bottomAnchor="60.0"
+              AnchorPane.topAnchor="40.0">
             <children>
-                <Button fx:id="ResetBoard" mnemonicParsing="false" onAction="#ResetBoard" text="Reset" textFill="RED">
-                    <HBox.margin>
-                        <Insets left="10.0"/>
-                    </HBox.margin>
-                </Button>
+                <HBox alignment="CENTER" style="-fx-background-color: #A0A1A4;" minWidth="50.0">
+                    <children>
+                        <ImageView fx:id="MineView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true"
+                                   preserveRatio="true"></ImageView>
+                        <Label fx:id="MineCount"
+                               style="-fx-text-fill: red; -fx-font-weight: bolder;"></Label>
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER" style="-fx-background-color: #A0A1A4;" minWidth="50.0">
+                    <children>
+                        <ImageView fx:id="FlagView" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true"
+                                   preserveRatio="true"></ImageView>
+                        <Label fx:id="FlagCount"
+                               style="-fx-text-fill: red; -fx-font-weight: bolder;"></Label>
+                    </children>
+                </HBox>
             </children>
         </HBox>
-        <Label fx:id="winLose" layoutX="796.0" layoutY="535.0" text="Label" AnchorPane.bottomAnchor="100.0"
-               AnchorPane.rightAnchor="200.0">
+        <GridPane fx:id="TheBoard" alignment="BASELINE_CENTER" AnchorPane.bottomAnchor="130.0"
+                  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="100.0">
+        </GridPane>
+        <Label fx:id="winLose" maxWidth="-Infinity" AnchorPane.leftAnchor="0.0"
+               AnchorPane.rightAnchor="0.0" alignment="CENTER" text="Label"
+               AnchorPane.bottomAnchor="60.0">
             <font>
                 <Font name="System Bold" size="35.0"/>
             </font>

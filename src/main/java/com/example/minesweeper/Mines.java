@@ -1,31 +1,21 @@
 package com.example.minesweeper;
 
 import java.util.Random;
-//import java.util.Scanner;
 
 public class Mines {
     static int winLose = -1;
     public String[][] board;
-    private int height /* rows */, width /* columns */, numMines, totalToReveal /* excluding mines */, numberOfFlags;
+    private int height, width, numMines, totalToReveal, numberOfFlags, tries;
     private Random rand = new Random(); // Generate random numbers
     private int h, w; // Assist with random received values
 
-    // @SuppressWarnings("resource")
     public Mines(int height, int width, int numMines) {
-        /* int newMines = -1; */
-        // boolean checkMinesNum = false; // If number of mines is legal
-        // Scanner sc = new Scanner(System.in);
+
         this.height = height;
         this.width = width;
         this.numberOfFlags = 0;
-        /*
-         * if (numMines < width * height && numMines >= 0) checkMinesNum = true; while
-         * (checkMinesNum != true) {
-         * System.out.println("Please enter a valid number of mines (lower than " +
-         * height * width + "):"); newMines = sc.nextInt(); if (newMines < width *
-         * height && newMines >= 0) { checkMinesNum = true; numMines = newMines; } } //
-         * sc.close(); // Can't do, because I need to close at the end of Main class
-         */
+        this.tries = 0;
+
         this.numMines = numMines;
         totalToReveal = (height * width) - this.numMines;
         board = new String[height][width]; // Create game's board with nulls initialized
@@ -83,11 +73,13 @@ public class Mines {
         checkPlace(i, j);
         if (board[i][j].charAt(1) == 'T') // Already revealed
             return true;
+        if (board[i][j].charAt(0) == 'D') // Already revealed
+            numberOfFlags--;
         if (board[i][j].charAt(2) == 'M') { // Slot contains a mine (user lost)
             board[i][j] = board[i][j].substring(0, 1) + "T" + "B"; // B for boom
             totalToReveal = 0; // Finish game
             isDone();
-            System.out.println("Game over, boy");
+            System.out.println("Game over");
             winLose = 0;
             return true;
         }
@@ -131,13 +123,6 @@ public class Mines {
             numberOfFlags--;
         }
     }
-
-//    public void toggleQM(int x, int y) {
-//        checkPlace(x, y);
-//        if (board[x][y].contains("T"))
-//            return;
-//        board[x][y] = "?" + board[x][y].substring(1, 3); // Overwrite it with question mark (?)
-//    }
 
     public boolean isDone() {
         if (totalToReveal != 0)
