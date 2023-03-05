@@ -174,6 +174,7 @@ public class BoardController {
         bCont = loader.getController();
 
         bCont.SetMineView(mines);
+        bCont.SetFlagCount(mines);
 
         gameStage.setScene(scene);
 
