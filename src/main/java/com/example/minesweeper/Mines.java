@@ -3,20 +3,24 @@ package com.example.minesweeper;
 import java.util.Random;
 
 public class Mines {
+    static public String[][] board;
+    static public int totalToReveal;
+    static public int tries;
+    static public int activeMineCounter;
     static int winLose = -1;
-    public String[][] board;
-    private int height, width, numMines, totalToReveal, numberOfFlags, tries;
+    static private int height, width, numMines, numberOfFlags, hypermine, h, w;
     private Random rand = new Random(); // Generate random numbers
-    private int h, w; // Assist with random received values
 
-    public Mines(int height, int width, int numMines) {
+    public Mines(int height, int width, int numMines, int hypermine) {
 
         this.height = height;
         this.width = width;
         this.numberOfFlags = 0;
         this.tries = 0;
-
         this.numMines = numMines;
+        this.hypermine = hypermine;
+        this.activeMineCounter = numMines;
+
         totalToReveal = (height * width) - this.numMines;
         board = new String[height][width]; // Create game's board with nulls initialized
         for (int i = 0; i < height; i++) // Initialize all slots in the board
@@ -26,7 +30,11 @@ public class Mines {
             h = rand.nextInt(height - 1); // Generate random number for height
             w = rand.nextInt(width - 1); // Generate random number for width
             if (board[h][w].charAt(2) != 'M') { // Make sure place wasn't used before
-                board[h][w] = board[h][w].substring(0, 2) + "M"; // Mark a place containing a mine with M
+                if (numMines == 1 && hypermine == 1) {
+                    board[h][w] = board[h][w].substring(0, 2) + "H";
+                } else {
+                    board[h][w] = board[h][w].substring(0, 2) + "M"; // Mark a place containing a mine with M
+                }
                 numMines--;
             }
         }
@@ -35,47 +43,57 @@ public class Mines {
                 board[i][j] = board[i][j].substring(0, 2) + get(i, j);
     }
 
-    public int getCol() {
-        return width;
+    static public void setShowAll() { // Set all slots to be revealed when game is over (win\lose)
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++)
+                if (!board[i][j].contains("T")) {
+                    board[i][j] = board[i][j].substring(0, 1) + "T" + board[i][j].substring(2, 3);
+                }
     }
 
-    public int getRow() {
-        return height;
+    static public boolean isDone() {
+        if (totalToReveal != 0)
+            return false;
+        setShowAll();
+        return true; // True if no more slots to reveal (won the game)
     }
 
-    private void checkPlace(int i, int j) { // Is it a legal move? (borders)
+    static private void checkPlace(int i, int j) { // Is it a legal move? (borders)
         if (i >= height || j >= width || i < 0 || j < 0)
             throw new IllegalArgumentException("Illegal move on board!");
     }
 
-    private boolean inBoard(int i, int j) { // Is move legal? (make move or not)
+    static private boolean inBoard(int i, int j) { // Is move legal? (make move or not)
         if (i >= height || j >= width || i < 0 || j < 0)
             return false;
         return true;
     }
 
-    public boolean addMine(int i, int j) {
-        checkPlace(i, j);
-        if (board[i][j].contains("M")) {
-            System.out.println("Adding a mine has failed, slot already contains one!");
-            return false;
-        }
-        board[i][j] = board[i][j].substring(0, 2) + "M";
-        numMines++; // Mine was added
-        totalToReveal--; // Subtract one slot (occupied by mine)
-        for (int r = 0; r < height; r++) // Initialize slot values
-            for (int c = 0; c < width; c++)
-                board[r][c] = board[r][c].substring(0, 2) + get(r, c);
-        return true;
-    }
+//    public boolean addMine(int i, int j) {
+//        checkPlace(i, j);
+//        if (board[i][j].contains("M")) {
+//            System.out.println("Adding a mine has failed, slot already contains one!");
+//            return false;
+//        }
+//        board[i][j] = board[i][j].substring(0, 2) + "M";
+//        numMines++; // Mine was added
+//        totalToReveal--; // Subtract one slot (occupied by mine)
+//        for (int r = 0; r < height; r++) // Initialize slot values
+//            for (int c = 0; c < width; c++)
+//                board[r][c] = board[r][c].substring(0, 2) + get(r, c);
+//        return true;
+//    }
 
-    public boolean open(int i, int j) {
+    static public boolean open(int i, int j, Boolean clicked) {
         checkPlace(i, j);
+        if (clicked) {
+            tries++;
+        }
         if (board[i][j].charAt(1) == 'T') // Already revealed
             return true;
-        if (board[i][j].charAt(0) == 'D') // Already revealed
+        if (board[i][j].charAt(0) == 'D')
             numberOfFlags--;
-        if (board[i][j].charAt(2) == 'M') { // Slot contains a mine (user lost)
+        if (board[i][j].charAt(2) == 'M' || board[i][j].charAt(2) == 'H') { // Slot contains a mine (user lost)
             board[i][j] = board[i][j].substring(0, 1) + "T" + "B"; // B for boom
             totalToReveal = 0; // Finish game
             isDone();
@@ -102,7 +120,7 @@ public class Mines {
                             System.out.println("You win!");
                             winLose = 1;
                         }
-                        open(i + r, j + c);
+                        open(i + r, j + c, false);
                     }
                 }
             }
@@ -111,24 +129,54 @@ public class Mines {
         return false;
     }
 
-    public void toggleFlag(int x, int y) {
+    static public void toggleFlag(int x, int y) {
         checkPlace(x, y);
         if (board[x][y].contains("T"))
             return;
-        if (board[x][y].contains("N") && numberOfFlags < numMines) {
-            board[x][y] = "D" + board[x][y].substring(1, 3); // Overwrite it with flag mark (D)
-            numberOfFlags++;
+        if (board[x][y].contains("N") && numberOfFlags < activeMineCounter) {
+            if (board[x][y].charAt(2) == 'H' && tries < 4) {
+                board[x][y] = "NTH";
+                for (int j = 0; j < height; j++) {
+                    if (!board[x][j].contains("T") && j != y) {
+                        if (board[x][j].charAt(2) == 'M') {
+                            board[x][j] = board[x][j].substring(0, 1) + "TI";
+                            activeMineCounter--;
+                        } else if (j != y) {
+                            open(x, j, false);
+                        }
+
+                    }
+                }
+                for (int j = 0; j < width; j++) {
+                    if (!board[j][y].contains("T") && j != x) {
+                        if (board[j][y].charAt(2) == 'M') {
+                            board[j][y] = board[j][y].substring(0, 1) + "TI";
+                        } else if (j != x) {
+                            open(j, y, false);
+                        }
+
+                    }
+                }
+            } else {
+                board[x][y] = "D" + board[x][y].substring(1, 3); // Overwrite it with flag mark (D)
+                numberOfFlags++;
+            }
         } else if (board[x][y].contains("D")) {
             board[x][y] = "N" + board[x][y].substring(1, 3); // Remove flag mark
             numberOfFlags--;
         }
     }
 
-    public boolean isDone() {
-        if (totalToReveal != 0)
-            return false;
-        setShowAll();
-        return true; // True if no more slots to reveal (won the game)
+    static public int getNumberOfFlags() {
+        return numberOfFlags;
+    }
+
+    public int getCol() {
+        return width;
+    }
+
+    public int getRow() {
+        return height;
     }
 
     public String get(int i, int j) {
@@ -142,7 +190,9 @@ public class Mines {
         } // Remaining slots are revealed
         if (board[i][j].contains("M"))
             return "M";
-        else {
+        else if (board[i][j].contains("H")) {
+            return "H";
+        } else {
             for (int r = -1; r < 2; r++) {
                 for (int c = -1; c < 2; c++) {
                     if (!(r == 0 && c == 0) && inBoard(i + r, j + c) && board[i + r][j + c].contains("M")) {
@@ -157,17 +207,6 @@ public class Mines {
             return "E";
         else
             return countMines.toString();
-    }
-
-    public void setShowAll() { // Set all slots to be revealed when game is over (win\lose)
-        for (int i = 0; i < height; i++)
-            for (int j = 0; j < width; j++)
-                if (!board[i][j].contains("T"))
-                    board[i][j] = board[i][j].substring(0, 1) + "T" + board[i][j].substring(2, 3);
-    }
-
-    public int getNumberOfFlags() {
-        return numberOfFlags;
     }
 
     @Override
