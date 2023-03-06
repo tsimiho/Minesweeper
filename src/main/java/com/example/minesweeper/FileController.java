@@ -10,6 +10,12 @@ import java.io.RandomAccessFile;
 
 public class FileController {
 
+    /**
+     * Class constructor.
+     */
+    public FileController() {
+    }
+
     private String getProjectPath() {
         try {
             URL res = getClass().getResource("BoardFXML.fxml");
@@ -26,13 +32,41 @@ public class FileController {
         }
     }
 
+    private void createMedialab() {
+        String projectPath = getProjectPath();
+        File medialab = new File(projectPath + "medialab/");
+        if (!medialab.exists()) {
+            medialab.mkdirs();
+        }
+    }
+
+
+    /**
+     * Given an id, checks if the file with name "id.txt" exists within the medialab directory.
+     *
+     * @param id the name of the requested file
+     * @return true if the file exists, false otherwise
+     */
     public Boolean ScenarioExists(String id) {
         String projectPath = getProjectPath();
         File file = new File(projectPath + "medialab/" + id + ".txt");
         return file.exists();
-
     }
 
+
+    /**
+     * Given an id, reads the file "id.txt", if it exists, within the medialab directory, else throws IOException.
+     * If the file does not contain 4 lines with one Integer each, it throws InvalidDescriptionException and if
+     * the Integers do not satisfy certain constraints based on the level, the time, the number of mines and
+     * whether there is a hypermine or not, it throws InvalidValueException. Else, it constructs an array of integers
+     * with the contents of the file and returns it.
+     *
+     * @param id the name of the requested file
+     * @return an array of integers which contains the contents of the requested file
+     * @throws InvalidDescriptionException if the file does not contain 4 lines with one Integer each
+     * @throws InvalidValueException       if the Integers do not satisfy certain constraints based on the level, the time,
+     *                                     the number of mines and whether there is a hypermine or not
+     */
     public int[] getGameDescription(String id) throws InvalidDescriptionException, InvalidValueException {
         String projectPath = getProjectPath();
         BufferedReader reader;
@@ -71,14 +105,16 @@ public class FileController {
         return gameData;
     }
 
-    private void createMedialab() {
-        String projectPath = getProjectPath();
-        File medialab = new File(projectPath + "medialab/");
-        if (!medialab.exists()) {
-            medialab.mkdirs();
-        }
-    }
 
+    /**
+     * Given an array of triplets that contain the coordinates of the mines in the grid and whether they are a hypermine,
+     * writes the triplets, each in a new line, in the file "mines.txt" in the medialab directory, after clearing its
+     * previous contents, if it already exists.
+     *
+     * @param mines the ArrayList of triplets that describe the coordinates of the mines in the grid and whether they
+     *              are a hypermine. The first element of the triplet is the x value, the second is the y value and the
+     *              third element is 1 if it is a hypermine, else 0.
+     */
     public void WriteMines(ArrayList<Triplet> mines) {
         createMedialab();
         String projectPath = getProjectPath();
@@ -99,6 +135,16 @@ public class FileController {
         }
     }
 
+    /**
+     * Writes in the "results.txt" file inside the project direcotry the information about a completed game:
+     * the number of mines in the game, the number of tries (left clicks), the game duration and the winner (1 for user
+     * and 0 for computer).
+     *
+     * @param mines  the number of mines in the game
+     * @param tries  the number of tries (left clicks) by the user
+     * @param time   the game duration
+     * @param winner the winner (1 for user and 0 for computer)
+     */
     public void WriteResult(int mines, int tries, int time, int winner) { // winner: 1 for user, 0 for computer
         try {
             URL res = getClass().getResource("");
@@ -121,6 +167,14 @@ public class FileController {
         }
     }
 
+
+    /**
+     * Gets the results (number of mines, number of tries, game duration and winner) of the last 5 completed games
+     * from the results.txt file within the project directory.
+     *
+     * @return a two-dimensional array with information (number of mines, number of tries, game duration and winner)
+     * of the last 5 completed games
+     */
     public int[][] GetResults() {
         try {
             URL res = getClass().getResource("");
@@ -149,7 +203,18 @@ public class FileController {
         return new int[0][0];
     }
 
-    void createScenarioID(String id, String level, String mines, String hypermine, String time) {
+
+    /**
+     * Given an id and the information about new game (level, number of mines, time and whether it contains a hypermine)
+     * creates a file with the name "id.txt" inside the medialab directory.
+     *
+     * @param id        the id of the created game (SECTION-ID)
+     * @param level     the level of the game (1 or 2)
+     * @param mines     the number of mines
+     * @param hypermine whether it contains a hypermine or not (1 if it does, else 0)
+     * @param time      the available time in seconds
+     */
+    public void createScenarioID(String id, String level, String mines, String hypermine, String time) {
         String projectPath = getProjectPath();
         File scenario_id = new File(projectPath + "/medialab/" + id + ".txt");
         if (!scenario_id.exists()) {

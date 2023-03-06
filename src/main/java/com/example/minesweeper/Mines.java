@@ -130,7 +130,7 @@ public class Mines {
         if (board[x][y].contains("T"))
             return;
         if (board[x][y].contains("N") && numberOfFlags < activeMineCounter) {
-            if (board[x][y].charAt(2) == 'H' && tries < 4) {
+            if (board[x][y].charAt(2) == 'H' && tries <= 4) {
                 board[x][y] = "NTH";
                 for (int j = 0; j < height; j++) {
                     if (!board[x][j].contains("T") && j != y) {
