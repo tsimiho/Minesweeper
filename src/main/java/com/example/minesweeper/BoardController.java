@@ -44,6 +44,7 @@ public class BoardController implements Initializable {
     public int numberOfFlags, level, mines, hypermine, time, rows = 9, columns = 9, countdownDuration, clicks;
     public FileController fc = new FileController();
     public String scenario_id;
+    public Stage stage;
     @FXML
     public GridPane TheBoard;
     @FXML
@@ -79,7 +80,6 @@ public class BoardController implements Initializable {
         SetMineView();
         SetFlagCount();
         StartGame();
-//        timeline.playFromStart();
     }
 
     void SetMineView() {
@@ -105,16 +105,14 @@ public class BoardController implements Initializable {
                 timeSeconds.set(timeSeconds.get() - 1);
                 if (timeSeconds.get() == 0) {
                     timeline.stop();
+                    Mines.setShowAll();
+                    SetTheBoard();
+                    Mines.recordResult(0, time - timeSeconds.get());
+                    winLose.setVisible(true);
+                    winLose.setText("Time is up!");
                 }
             }
         }));
-        timeline.setOnFinished((res) -> {
-            Mines.setShowAll();
-            SetTheBoard();
-            Mines.recordResult(0, time - timeSeconds.get());
-            winLose.setVisible(true);
-            winLose.setText("Time is up!");
-        });
     }
 
     void StartGame() {
@@ -355,12 +353,22 @@ public class BoardController implements Initializable {
 
     @FXML
     void ApplicationStart() {
+        TheBoard.getChildren().clear();
+
+        stage = (Stage) TheBoard.getScene().getWindow();
+        if (level == 1) {
+            stage.setHeight(650);
+            stage.setWidth(650);
+        } else if (level == 2) {
+            stage.setHeight(900);
+            stage.setWidth(900);
+        }
+
         timeline.stop();
         InitTimer();
         SetMineView();
         SetFlagCount();
         StartGame();
-//        timeline.playFromStart();
     }
 
     @FXML

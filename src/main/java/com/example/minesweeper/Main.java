@@ -18,8 +18,8 @@ public class Main extends Application {
             Scene scene = new Scene(root);
             stage.setTitle("MediaLab Minesweeper");
             stage.setScene(scene);
-            stage.setHeight(900);
-            stage.setWidth(900);
+            stage.setHeight(650);
+            stage.setWidth(650);
             stage.show();
 
         } catch (Exception e) {
