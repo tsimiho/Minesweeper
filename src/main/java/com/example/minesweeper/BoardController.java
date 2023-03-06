@@ -259,6 +259,9 @@ public class BoardController implements Initializable {
         TextField mines = new TextField();
         TextField hypermine = new TextField();
         TextField time = new TextField();
+        Label errorLabel = new Label("Invalid Input");
+        errorLabel.setTextFill(Color.RED);
+        errorLabel.setVisible(false);
 
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -270,25 +273,28 @@ public class BoardController implements Initializable {
         grid.add(level, 1, 1);
         grid.add(new Label("Number of Mines"), 0, 2);
         grid.add(mines, 1, 2);
-        grid.add(new Label("HyperMine"), 0, 3);
+        grid.add(new Label("HyperMine (Yes/No)"), 0, 3);
         grid.add(hypermine, 1, 3);
         grid.add(new Label("Time in Seconds"), 0, 4);
         grid.add(time, 1, 4);
-
+        grid.add(errorLabel, 1, 5);
         dialogPane.setContent(grid);
 
-        dialog.setResultConverter((ButtonType button) -> {
-            if (button == ButtonType.OK) {
-                String[] list = {scenario_id.getText(), level.getText(), mines.getText(), time.getText(), hypermine.getText()};
-                return list;
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(okButtonType);
+        okButton.addEventFilter(ActionEvent.ACTION, event -> {
+            System.out.println(Objects.equals(hypermine.getText(), "No"));
+            if (Objects.equals(hypermine.getText(), "Yes") || Objects.equals(hypermine.getText(), "No")) {
+                String h = hypermine.getText() == "Yes" ? "1" : "0";
+                String[] list = {scenario_id.getText(), level.getText(), mines.getText(), time.getText(), h};
+                this.scenario_id = list[0];
+                fc.createScenarioID(list[0], list[1], list[2], list[3], list[4]);
+            } else {
+                errorLabel.setVisible(true);
+                event.consume();
             }
-            return null;
         });
-        Optional<String[]> optionalResult = dialog.showAndWait();
-        optionalResult.ifPresent((String[] list) -> {
-            this.scenario_id = list[0];
-            fc.createScenarioID(list[0], list[1], list[2], list[3], list[4]);
-        });
+
+        dialog.showAndWait();
     }
 
     @FXML
@@ -312,7 +318,6 @@ public class BoardController implements Initializable {
         grid.setPadding(new Insets(20, 150, 10, 10));
         grid.add(new Label("SCENARIO-ID:"), 0, 0);
         grid.add(id, 1, 0);
-//        grid.add(errorLabel, 0, 1);
         GridPane.setRowSpan(errorLabel, 1);
         GridPane.setColumnSpan(errorLabel, 2);
         grid.add(errorLabel, 0, 1);
@@ -324,20 +329,28 @@ public class BoardController implements Initializable {
             String s_id = id.getText();
             if (!fc.ScenarioExists(s_id)) {
                 errorLabel.setVisible(true);
-                errorLabel.setText("The specified file does not exist.");
+                errorLabel.setText("The specified section-id does not exist.");
                 event.consume();
             } else {
                 scenario_id = s_id;
+                int[] data = new int[0];
+                try {
+                    data = fc.getGameDescription(scenario_id);
+                } catch (InvalidDescriptionException | InvalidValueException e) {
+                    errorLabel.setVisible(true);
+                    errorLabel.setText("The file contents are invalid");
+                    throw new RuntimeException(e);
+                }
+                level = data[0];
+                mines = data[1];
+                time = data[2];
+                hypermine = data[3];
             }
         });
 
         dialog.showAndWait();
 
-        int[] data = fc.getGameDescription(scenario_id);
-        level = data[0];
-        mines = data[1];
-        time = data[2];
-        hypermine = data[3];
+
     }
 
     @FXML

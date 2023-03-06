@@ -149,7 +149,7 @@ public class FileController {
         return new int[0][0];
     }
 
-    public void createScenarioID(String id, String level, String mines, String hypermine, String time) {
+    void createScenarioID(String id, String level, String mines, String hypermine, String time) {
         String projectPath = getProjectPath();
         File scenario_id = new File(projectPath + "/medialab/" + id + ".txt");
         if (!scenario_id.exists()) {
