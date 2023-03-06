@@ -1,6 +1,9 @@
 package com.example.minesweeper;
 
+import eu.hansolo.toolbox.tuples.Triplet;
+
 import java.util.Random;
+import java.util.*;
 
 public class Mines {
     static public String[][] board;
@@ -9,7 +12,10 @@ public class Mines {
     static public int activeMineCounter;
     static int winLose = -1;
     static private int height, width, numMines, numberOfFlags, hypermine, h, w;
+    static private FileController fc = new FileController();
     private Random rand = new Random(); // Generate random numbers
+
+    private ArrayList<Triplet> mineCoordinates = new ArrayList<Triplet>();
 
     public Mines(int height, int width, int numMines, int hypermine) {
 
@@ -32,12 +38,17 @@ public class Mines {
             if (board[h][w].charAt(2) != 'M') { // Make sure place wasn't used before
                 if (numMines == 1 && hypermine == 1) {
                     board[h][w] = board[h][w].substring(0, 2) + "H";
+                    Triplet t = new Triplet(w, h, 1);
+                    mineCoordinates.add(t);
                 } else {
                     board[h][w] = board[h][w].substring(0, 2) + "M"; // Mark a place containing a mine with M
+                    Triplet t = new Triplet(w, h, 0);
+                    mineCoordinates.add(t);
                 }
                 numMines--;
             }
         }
+        fc.WriteMines(mineCoordinates);
         for (int i = 0; i < height; i++) // Initialize slot values
             for (int j = 0; j < width; j++)
                 board[i][j] = board[i][j].substring(0, 2) + get(i, j);
@@ -69,21 +80,6 @@ public class Mines {
         return true;
     }
 
-//    public boolean addMine(int i, int j) {
-//        checkPlace(i, j);
-//        if (board[i][j].contains("M")) {
-//            System.out.println("Adding a mine has failed, slot already contains one!");
-//            return false;
-//        }
-//        board[i][j] = board[i][j].substring(0, 2) + "M";
-//        numMines++; // Mine was added
-//        totalToReveal--; // Subtract one slot (occupied by mine)
-//        for (int r = 0; r < height; r++) // Initialize slot values
-//            for (int c = 0; c < width; c++)
-//                board[r][c] = board[r][c].substring(0, 2) + get(r, c);
-//        return true;
-//    }
-
     static public boolean open(int i, int j, Boolean clicked) {
         checkPlace(i, j);
         if (clicked) {
@@ -97,16 +93,16 @@ public class Mines {
             board[i][j] = board[i][j].substring(0, 1) + "T" + "B"; // B for boom
             totalToReveal = 0; // Finish game
             isDone();
-            System.out.println("Game over");
             winLose = 0;
+//            recordResult(winLose);
             return true;
         }
         if (board[i][j].charAt(2) != 'E' && board[i][j].charAt(2) != 'M' && board[i][j].charAt(2) != 'B') {
             board[i][j] = board[i][j].substring(0, 1) + "T" + board[i][j].substring(2, 3);
             totalToReveal--;
             if (isDone()) {
-                System.out.println("You win!");
                 winLose = 1;
+//                recordResult(winLose);
             }
             return true;
         }
@@ -117,8 +113,8 @@ public class Mines {
                 for (int c = -1; c < 2; c++) {
                     if (!(r == 0 && c == 0) && inBoard(i + r, j + c)) {
                         if (isDone()) {
-                            System.out.println("You win!");
                             winLose = 1;
+//                            recordResult(winLose);
                         }
                         open(i + r, j + c, false);
                     }
@@ -169,6 +165,10 @@ public class Mines {
 
     static public int getNumberOfFlags() {
         return numberOfFlags;
+    }
+
+    static public void recordResult(int result, int time) { // result: 1 for win and 0 for loss
+        fc.WriteResult(numMines, tries, time, result);
     }
 
     public int getCol() {

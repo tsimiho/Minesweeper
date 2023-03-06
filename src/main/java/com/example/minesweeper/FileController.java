@@ -1,13 +1,16 @@
 package com.example.minesweeper;
 
+import eu.hansolo.toolbox.tuples.Triplet;
+
 import java.io.*;
 import java.net.URL;
 import java.nio.file.*;
-import java.util.Scanner;
+import java.util.*;
+import java.io.RandomAccessFile;
 
 public class FileController {
 
-    public String getProjectPath() {
+    private String getProjectPath() {
         try {
             URL res = getClass().getResource("BoardFXML.fxml");
             File file = Paths.get(res.toURI()).toFile();
@@ -21,6 +24,13 @@ public class FileController {
             System.err.println("Error");
             return e.getMessage();
         }
+    }
+
+    public Boolean ScenarioExists(String id) {
+        String projectPath = getProjectPath();
+        File file = new File(projectPath + "medialab/" + id + ".txt");
+        return file.exists();
+
     }
 
     public int[] getGameDescription(String id) throws InvalidDescriptionException, InvalidValueException {
@@ -39,8 +49,6 @@ public class FileController {
                     throw new InvalidDescriptionException("InvalidDescriptionException");
                 }
                 i++;
-                //System.out.println(line);
-                // read next line
                 line = reader.readLine();
             }
             reader.close();
@@ -61,15 +69,84 @@ public class FileController {
             e.printStackTrace();
         }
         return gameData;
-
     }
 
-    public void createMedialab() {
+    private void createMedialab() {
         String projectPath = getProjectPath();
         File medialab = new File(projectPath + "medialab/");
         if (!medialab.exists()) {
             medialab.mkdirs();
         }
+    }
+
+    public void WriteMines(ArrayList<Triplet> mines) {
+        createMedialab();
+        String projectPath = getProjectPath();
+        Triplet t;
+        String s;
+        File mines_txt = new File(projectPath + "/medialab/mines.txt");
+        try {
+            Files.deleteIfExists(Paths.get(projectPath + "/medialab/mines.txt"));
+            mines_txt.createNewFile();
+            FileWriter myWriter = new FileWriter(mines_txt);
+            for (int i = 0; i < mines.size(); i++) {
+                t = mines.get(i);
+                myWriter.write(t.getA().toString() + ',' + t.getB().toString() + ',' + t.getC().toString() + "\n");
+            }
+            myWriter.close();
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void WriteResult(int mines, int tries, int time, int winner) { // winner: 1 for user, 0 for computer
+        try {
+            URL res = getClass().getResource("");
+            File file = Paths.get(res.toURI()).toFile();
+            String absolutePath = file.getAbsolutePath() + "/results.txt";
+            File results = new File(absolutePath);
+            if (!results.exists()) {
+                results.createNewFile();
+            }
+            String content = String.valueOf(mines) + "," + String.valueOf(tries) + "," + String.valueOf(time) + "," + String.valueOf(winner) + "\n";
+
+            RandomAccessFile raf = new RandomAccessFile(results, "rw");
+            byte[] oldContent = new byte[(int) results.length()]; // Read the existing content of the file
+            raf.readFully(oldContent);
+            raf.seek(0); // Set the file pointer to the beginning
+            raf.write(content.getBytes()); // Write the new content to the beginning
+            raf.write(oldContent);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    public int[][] GetResults() {
+        try {
+            URL res = getClass().getResource("");
+            File file = Paths.get(res.toURI()).toFile();
+            String absolutePath = file.getAbsolutePath() + "/results.txt";
+            BufferedReader reader;
+            reader = new BufferedReader(new FileReader(absolutePath));
+            String line = reader.readLine();
+
+            int[][] result = new int[5][4];
+            int i = 0;
+            while (i < 5) {
+                if (line != null) {
+                    result[i] = Arrays.stream(line.split(",")).mapToInt(Integer::parseInt).toArray();
+                } else {
+                    result[i] = new int[]{0, 0, 0, 0};
+                }
+                i++;
+                line = reader.readLine();
+            }
+            reader.close();
+            return result;
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+        return new int[0][0];
     }
 
     public void createScenarioID(String id, String level, String mines, String hypermine, String time) {
@@ -87,5 +164,4 @@ public class FileController {
 
         }
     }
-
 }
